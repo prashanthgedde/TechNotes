@@ -6,7 +6,6 @@
 * Many use-case which requires real-time processing:
     * monitoring social media on sentiments of the election-related posts
 
-
 #### Storm is to real-time processing what Hadoop is to batch processing.
 
 
@@ -25,24 +24,6 @@
  ### Storm Components
  * A storm cluster follows a master-slave model. 
  * Master and slave processes are coordinated through Zookeeper.
-
-
- # Components
- ## Nimbus
-   * Master node.
-   * Distributes application code among worker nodes.
-   * Assigning and monitoring tasks.
-   * Stateless (No state info is stored in Nimbus). Relies on ZK for configs and state info.
-   * Single Nimbus node per storm cluster.
-   * Designed to fail-fast. When Nimbus dies, it can be restarted without having any effects on the already running tasks on workers.
-   
- ## Supervisor nodes
-   * Worker nodes performing the tasks assigned by Nimbus.
-   * Each supervisor runs supervisor daemon.
-   * Daemon is responsible for creating starting and stopping worker processes to execute tasks assigned to that node.
- ## Zookeeper
-   * For coordinating b/w Nimbus and Supervisors.
-   * Nimbus and Supervisor do not communicate directly but through ZooKeeper.
    
 
 # Storm Data model
@@ -88,11 +69,15 @@ OS/Service/AppSensors -> Logs/events/errors/status-msgs -> Kafka/JMS/RabbitMQ ->
 There can be multiple bolts listening for the streams from the same Spout. There 2 bolts run tasks in parallel.
 
 ### Stream Grouping
-
 * Shuffle - Randomized round-robin - Evenly distribute load to doownstream Bolts.
 * Fields - Ensure all Tples with same field value are always routed to the same Task. (Ex: avarage by zip code, all tuples with same zip field endup in the same bolt).
 * ALL - Replicate Streams across all the Bolt's Tasks (use with care)
 
+Ex: Simple word count topology: This uses both Shuffle and Fields grouping: 
+
+LineReaderSpout --(shuffle grp)--> WordSplitterBolt --(Fields grp)--> WordCountBolt
+
+### Java APIs
 
 ```java
 Spout {
@@ -117,17 +102,53 @@ Bolt {
 }
 ```
 
+
+ # Storm Components
+ ## Nimbus
+   * Master node.
+   * Distributes application code among worker nodes.
+   * Assigning and monitoring tasks.
+   * Stateless (No state info is stored in Nimbus). Relies on ZK for configs and state info.
+   * Single Nimbus node per storm cluster.
+   * Designed to fail-fast. When Nimbus dies, it can be restarted without having any effects on the already running tasks on workers.
+   
+ ## Supervisor nodes
+   * Worker nodes performing the tasks assigned by Nimbus.
+   * Each supervisor runs supervisor daemon.
+   * Daemon is responsible for creating starting and stopping worker processes to execute tasks assigned to that node.
+
+ ## Zookeeper
+   * Distributed configuration, for coordinating b/w Nimbus and Supervisors.
+   * Nimbus and Supervisor do not communicate directly but through ZooKeeper.
+
+## Topology Deployment process
+* Connect to Nimbus and submit required jars for deploying a toplogy.
+* Nimbus taslks to Zookeeper to update configs.
+* Supervisor listens to Zookeeper for config changes. 
+* Supervisors bring back jars from Nimbus.
+* As needed Supervisors launches the Tasks to run tasks.
+
+# Reliable Processing
+If something fails while processing, bolt can ACK or Fail a particular tuple.
+* Bolt can Acknowlege that a Tuple has been processed successfully.
+* Bolt can also Fail a tuple to trigger a spout to replay the original.
+
+
+# Usecase - Kafka > Storm > HBase
+
+Kafka -> KafkaSpout -> ParseBolt -> FilterBolt -> KafkaSinkBolt -> Kafka
+
+FilterBolt ---> HBaseSinkBolt
+
 # Usecase - Twitter
 
 ## What's hot on Twitter
-
 * Trending tweets change may be every few minutes.
 * Batch processing all tweets in last 10 mins can cause additional delays.
 * Instead Storm can process each tweet as it comes in Near-Real-Time.
 * Stream processing gets the most recent view of events flowing.
 
 Distribute the stream to multiple components.
-
 
 ## Trending tweets topology
 Spout -> SplitBolt -> CountBolt -> SortBolt
