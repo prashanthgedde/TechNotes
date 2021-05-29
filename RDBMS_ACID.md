@@ -80,6 +80,12 @@ Most DBMSs offer a number of transaction isolation levels, which control the deg
 
 Programmer must carefully analyze database access code to ensure that any relaxation of isolation does not cause software bugs that are difficult to find. Conversely, if higher isolation levels are used, the possibility of deadlock is increased, which also requires careful analysis and programming techniques to avoid.
 
+The ISO standard defines the following isolation levels:
+* Read uncommitted: lowest level where transactions are isolated only enough to ensure that physically corrupt data is not read
+* Read committed: (Default?)
+* Repeatable read
+* Serializable: Highest level, where transactions are completely isolated from one another.
+
 |  Isolation Level/ Read Phenomena     | Dirty Reads | Lost Updates | Non-Repeatable reads | Phantom Reads |
 | ----  | ----------- | ------------ | -------------------- | ------------- |
 | Read Uncommitted | Possible | Possible | Possible | Possible |
