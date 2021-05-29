@@ -43,7 +43,7 @@ If a user likes a picture following things need to happen for the above tables:
 1. UPDATE pictures SET likes = likes+1 WHERE pict-id = 1
 2. INSERT INTO likes VALUES (1, 'JON')
 
-Both the above querys must execute as if they are one single operation. If first query succeeds, but 2nd fails, data ends up inconsisitent. There could be many reasons for failure due to which a query can fail.
+Both the above queries must execute as if they are one single operation. If first query succeeds, but 2nd fails, data ends up inconsisitent. There could be many reasons for failure due to which a query can fail.
 
 ATOMICITY guarantees each TRANSACTION as a single unit, which either succeeds completely or fails completely. If any of the statements constituting a transaction fails to complete, the entire transaction fails and the database is left unchanged
 
@@ -68,7 +68,24 @@ Doing this can have impacts on the speed of transactions as it may force many op
 
 Examples for basic transactions with isolation: https://www.youtube.com/watch?v=NHKHzwolbKU
 
+### Read Phenomena and Isolation Levels
 
+| Read Phenomena | Description |
+| -------------- | ---------------- |
+| Dirty Reads | Occurrs when one transaction is allowed to read data from row that has been modified by another running transaction and not yet committed.|
+| Non-Repeatable Reads | Occurs during a transaaction, a raw is retrieved twice and values within the row differ brtween reads.|
+| Phantom Reads | Occurs when, during a transaction, new rows are added or removed by another transaftion to the records being read.|
+
+Most DBMSs offer a number of transaction isolation levels, which control the degree of locking that occurs when selecting data. Majority of database transactions can be constructed to avoid requiring high isolation levels (e.g. SERIALIZABLE level), thus reducing the locking overhead for the system. 
+
+Programmer must carefully analyze database access code to ensure that any relaxation of isolation does not cause software bugs that are difficult to find. Conversely, if higher isolation levels are used, the possibility of deadlock is increased, which also requires careful analysis and programming techniques to avoid.
+
+|  Isolation Level/ Read Phenomena     | Dirty Reads | Lost Updates | Non-Repeatable reads | Phantom Reads |
+| ----  | ----------- | ------------ | -------------------- | ------------- |
+| Read Uncommitted | Possible | Possible | Possible | Possible |
+| Read Committed   | NotPossible | Possible | Possible | Possible |
+| Repeatable Read  | NotPossible | NotPossible | NotPossible | Possible | 
+| Serializable  | NotPossible | NotPossible | NotPossible | NotPossible | 
 
 ## Durability
 Once data is committed, its permanent.
