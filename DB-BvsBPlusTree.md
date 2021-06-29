@@ -40,5 +40,6 @@ Advantages of B+ trees:
 Advantage of B trees:
 * Because B trees contain data with each key, frequently accessed nodes can lie closer to the root, and therefore can be accessed more quickly.
 
+![](https://i.stack.imgur.com/l6UyF.png)
 
 
